@@ -33,6 +33,16 @@ c.executemany(
     "INSERT INTO leads (company, industry, employees, funding, signal, status) VALUES (?, ?, ?, ?, ?, ?)",
     leads
     )
+
+c.execute("""CREATE TABLE IF NOT EXISTS decisions (
+    id INTEGER PRIMARY KEY,
+    lead_id INTEGER,
+    company TEXT,
+    decision TEXT,          -- 'qualified' or 'rejected'
+    reason TEXT,
+    created_at TEXT DEFAULT CURRENT_TIMESTAMP
+)""")
+
 conn.commit()
 conn.close()
 
