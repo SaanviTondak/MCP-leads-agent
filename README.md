@@ -1,52 +1,55 @@
-# Leads Agent — an MCP-powered lead qualification & outreach system
+# Leads Agent: MCP-powered lead qualification & outreach
 
-An agentic AI system that automates a manual lead-generation and outreach
-workflow. Built on the **Model Context Protocol (MCP)** with a custom server,
-driven by Claude Code as the agent runtime.
+An agent that automates a manual B2B lead-generation workflow for a water and wastewater treatment company (World Technologies, Singapore). It finds real industrial facilities, qualifies each one against an ideal-customer profile (ICP), drafts outreach for the good ones, critiques and rewrites its own drafts, and logs every decision.
 
-## What it does
+Built on the **Model Context Protocol (MCP)** with a custom Python server; **Claude Code** is the agent runtime.
 
-Given an Ideal Customer Profile (ICP), the agent finds candidate leads,
-qualifies each one against the ICP, drafts personalized outreach for the good
-ones, and logs every decision — with a self-critique step that reviews and
-revises each draft before finalizing.
+> Outreach is **drafted for human review, never sent.** There is no mail transport in this codebase, by design.
 
-> Outreach is **drafted for human review, not auto-sent** — a deliberate design
-> choice for a prototype handling real-world contacts.
+## How it works
 
-## Architecture
-
-- **MCP server (`server.py`)** exposes all three MCP primitives:
-  - **Tool** — `search_leads`: query leads by industry / size
-  - **Resource** — `leads://all` and `leads://{id}`: readable lead data
-  - **Prompt** — `qualify_lead`: reusable ICP-based qualification template
-- **Data (`seed_data.py` → `leads.db`)** — a small SQLite database of sample leads
-- **Agent runtime** — Claude Code connects to the MCP server, discovers the
-  primitives, and runs the qualify → draft → review loop
-
-## Tech stack
-
-Python · MCP Python SDK (`FastMCP`) · SQLite · Claude Code
-
-## Setup
-
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install "mcp[cli]" uv
-python seed_data.py          # builds leads.db
-mcp dev server.py            # opens the MCP Inspector to test the server
+```
+/run-leads  (Claude Code slash command)
+   |
+   |-- 1. GENERATE  fetch_leads -> OpenStreetMap Overpass API: named industrial sites in Singapore
+   |-- 2. QUALIFY   qualify_lead prompt + ICP -> QUALIFIED / REJECTED, logged via log_decision
+   |-- 3. DRAFT     <90-word email per qualified lead -> self-critique (personalisation, relevance,
+   |                tone, length; 1-5) -> rewrite if any score < 4 -> save_draft
+   `-- 4. REPORT    counts generated / qualified / rejected + drafts folder
 ```
 
-## Project status
+## MCP server (`server.py`)
 
-- [x] MCP server with tool, resource, and prompt primitives
-- [x] Sample lead database
-- [ ] Wired into Claude Code as an agent
-- [ ] Self-critique loop on outreach drafts
-- [ ] Decision logging / trajectory trace
+| Primitive | Name | What it does |
+| --- | --- | --- |
+| Tool | `fetch_leads` | Queries OpenStreetMap for named industrial facilities likely to produce wastewater |
+| Tool | `log_decision` | Stores each qualify/reject decision and a one-line reason in SQLite |
+| Tool | `save_draft` | Saves an outreach draft to `drafts/` for a human to review |
+| Tool | `search_leads` | Filters the seeded sample leads by industry and size |
+| Resource | `leads://all`, `leads://{id}` | Sample leads as readable context |
+| Prompt | `qualify_lead` | Reusable ICP qualification template |
 
-## What I'd build next
+The agent workflow itself lives in [`.claude/commands/run-leads.md`](.claude/commands/run-leads.md).
 
-Real email integration with rate limiting and consent handling, A/B testing of
-outreach messaging, and a formal evaluation set to measure qualification accuracy.
+## Run it
+
+```bash
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+python seed_data.py        # creates leads.db (sample leads + decisions table)
+mcp dev server.py          # optional: inspect the server in MCP Inspector
+```
+
+Then register the server with Claude Code (`claude mcp add leads -- python server.py`) and run `/run-leads`.
+
+## Design choices
+
+- **Human in the loop by construction:** drafts land in files; nothing can send email.
+- **Auditable:** every qualification decision is stored with its reason, so the ICP can be tuned against real outcomes.
+- **Self-critique before save:** each draft is scored on four criteria and rewritten until all score 4 or higher.
+
+## Next
+
+- A hand-labelled evaluation set of facilities to measure qualification precision and recall
+- Enrichment (company size, sector) beyond OpenStreetMap tags
+- Rate-limited, consent-aware sending behind an explicit human approval step
