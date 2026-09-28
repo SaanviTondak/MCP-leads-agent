@@ -79,21 +79,17 @@ def log_decision(lead_id: int, company: str, decision: str, reason: str) -> str:
     conn.close()
     return f"Logged {decision} for {company}."
 
-#def search_leads(industry: str = "", min_employees: int = 0) -> list[dict]:
-    """
-    Search leads, optionally filtering by industry and minimum employee count.
-    Returns a list of leads with all their fields.
-    """
-    #instruction for LLM
-
+@mcp.tool()
+def search_leads(industry: str = "", min_employees: int = 0) -> list[dict]:
+    """Search the seeded sample leads, optionally filtering by industry
+    (substring match) and minimum employee count."""
     conn = db()
     rows = conn.execute(
         "SELECT * FROM leads WHERE industry LIKE ? AND employees >= ?",
-        (f"%{industry}%", min_employees)
-
+        (f"%{industry}%", min_employees),
     ).fetchall()
     conn.close()
-    return [ dict(r) for r in rows ] #
+    return [dict(r) for r in rows]
 
 
 #resource is data AI can read for context 
@@ -129,7 +125,7 @@ def one_lead(lead_id: str) -> str:
         return f"Lead with ID {lead_id} not found."
 
     return (f"{r['company']} — {r['industry']}, {r['employees']} employees, "
-            f"{r['funding_stage']}. Signal: {r['signal']}. Status: {r['status']}.")
+            f"{r['funding']}. Signal: {r['signal']}. Status: {r['status']}.")
 
 
 
@@ -140,8 +136,9 @@ def qualify_lead(lead_info:str) -> str:
     """
     A reusable prompt that asks the model to qualify a lead against our ICP
     """
-    return f""" You are qualifying a sales lead against our Ideal Customer Profile (ICP). Here is the lead information:
-    OOur ICP — a strong lead meets MOST of these:
+    return f""" You are qualifying a sales lead against our Ideal Customer Profile (ICP). 
+
+Our ICP — a strong lead meets MOST of these:
 - An industrial or municipal facility that generates wastewater or needs water treatment
 - Operates in a sector we serve: pharmaceutical, semiconductor, oil & gas / petrochemical,
   food & beverage / breweries, textile & dyeing, distilleries, pulp & paper, power,
