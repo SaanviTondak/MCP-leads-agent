@@ -1,21 +1,5 @@
 # CLAUDE.md — Leads Agent Project
 
-## How to work with me (READ THIS FIRST)
-
-I am **learning MCP and agentic AI from scratch**. I know Python well but I am new
-to MCP concepts and agent design. So:
-
-- **Teach, don't just do.** Explain every step and every line of new code before or
-  as you write it. I want to understand *why*, not just get working code.
-- **Go one step at a time.** Give me a single chunk, let me run/test it, and wait for
-  me to confirm it works before moving to the next chunk. Do not dump the whole
-  remaining build at once.
-- **Explain errors, don't just fix them.** When something breaks, tell me what the
-  error means and why it happened, then the fix.
-- **Test each piece in isolation** before integrating it (e.g. MCP Inspector before
-  wiring into Claude Code).
-- Be concise and direct. No filler.
-
 ## What this project is
 
 An **MCP-powered agentic AI system** that automates a manual lead-generation and
@@ -40,16 +24,6 @@ discharge, water audits, chemicals, etc.) to **industrial and municipal clients*
 - Honest limitation to state openly: OSM gives the facility + maybe website/phone, NOT a
   named decision-maker email. Prototype drafts to the role; real contact lookup is a
   human/next step.
-
-This project exists to (a) genuinely teach me MCP + agentic AI, and (b) back up a
-real resume bullet from my internship:
-
-> World Technologies — Automation & Tech Intern (Sept 2025 – Present)
-> Designing and prototyping agentic AI marketing systems (built with Claude Code)
-> that automate a previously manual lead-generation and outreach workflow,
-> projected to save ~10 hrs/week
-
-Everything we build should keep that bullet honest and defensible in an interview.
 
 ## Timeline / constraints
 
@@ -136,8 +110,6 @@ A strong lead meets MOST of:
 - Reject: retail, offices, pure logistics/warehousing, anything with no wastewater need
 
 ## What's NEXT (the remaining build, in order)
-
-Do these one at a time, teaching as you go. Wait for me to confirm each works.
 
 1. **Add `fetch_leads` (real lead-gen)** — Overpass/OpenStreetMap tool pulling real
    Singapore industrial facilities. Test in Inspector first. (search_leads over the
